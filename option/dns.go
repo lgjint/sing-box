@@ -16,14 +16,14 @@ type DNSOptions struct {
 }
 
 type DNSServerOptions struct {
-	Tag                  string                `json:"tag,omitempty"`
-	Address              string                `json:"address"`
-	AddressResolver      string                `json:"address_resolver,omitempty"`
-	AddressStrategy      DomainStrategy        `json:"address_strategy,omitempty"`
-	AddressFallbackDelay badoption.Duration    `json:"address_fallback_delay,omitempty"`
-	Strategy             DomainStrategy        `json:"strategy,omitempty"`
-	Detour               string                `json:"detour,omitempty"`
-	ClientSubnet         *badoption.Prefixable `json:"client_subnet,omitempty"`
+	Tag                  string                     `json:"tag,omitempty"`
+	Address              badoption.Listable[string] `json:"address"`
+	AddressResolver      string                     `json:"address_resolver,omitempty"`
+	AddressStrategy      DomainStrategy             `json:"address_strategy,omitempty"`
+	AddressFallbackDelay badoption.Duration         `json:"address_fallback_delay,omitempty"`
+	Strategy             DomainStrategy             `json:"strategy,omitempty"`
+	Detour               string                     `json:"detour,omitempty"`
+	ClientSubnet         *badoption.Prefixable      `json:"client_subnet,omitempty"`
 }
 
 type DNSClientOptions struct {
