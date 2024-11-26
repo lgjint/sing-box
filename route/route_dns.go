@@ -124,12 +124,13 @@ func (r *Router) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.Msg, er
 		r.dnsLogger.DebugContext(ctx, "exchange ", formatQuestion(message.Question[0].String()))
 	}
 	var (
-		response  *mDNS.Msg
-		cached    bool
-		transport dns.Transport
-		err       error
+		response   *mDNS.Msg
+		cached     bool
+		lazyCached bool
+		transport  dns.Transport
+		err        error
 	)
-	response, cached = r.dnsClient.ExchangeCache(ctx, message)
+	response, cached, lazyCached = r.dnsClient.ExchangeCache(ctx, message)
 	if !cached {
 		var metadata *adapter.InboundContext
 		ctx, metadata = adapter.ExtendContext(ctx)
@@ -213,6 +214,13 @@ func (r *Router) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.Msg, er
 				}
 			}
 		}
+	}
+	if lazyCached {
+		go func() {
+			lazyCacheCtx, cancel := context.WithTimeout(context.Background(), C.DNSTimeout)
+			defer cancel()
+			r.Exchange(lazyCacheCtx, message.Copy())
+		}()
 	}
 	return response, nil
 }
