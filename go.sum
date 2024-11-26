@@ -54,6 +54,8 @@ github.com/klauspost/cpuid/v2 v2.2.5/go.mod h1:Lcz8mBdAVJIBVzewtcLocK12l3Y+JytZY
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
+github.com/lgjint/sing-dns v0.0.0-20241126081342-64784ba74097 h1:cpCv9K9suCw90DOfX95sLL28sONXGyj8WIc5kbX3Vbc=
+github.com/lgjint/sing-dns v0.0.0-20241126081342-64784ba74097/go.mod h1:9LHcYKg2bGQpbtXrfNbopz8ok/zBK9ljiI2kmFG9JKg=
 github.com/libdns/alidns v1.0.3 h1:LFHuGnbseq5+HCeGa1aW8awyX/4M2psB9962fdD2+yQ=
 github.com/libdns/alidns v1.0.3/go.mod h1:e18uAG6GanfRhcJj6/tps2rCMzQJaYVcGKT+ELjdjGE=
 github.com/libdns/cloudflare v0.1.1 h1:FVPfWwP8zZCqj268LZjmkDleXlHPlFU9KC4OJ3yn054=
