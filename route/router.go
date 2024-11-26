@@ -11,6 +11,7 @@ import (
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/dialer"
+	"github.com/sagernet/sing-box/common/ecs"
 	"github.com/sagernet/sing-box/common/geoip"
 	"github.com/sagernet/sing-box/common/geosite"
 	"github.com/sagernet/sing-box/common/process"
@@ -58,6 +59,9 @@ type Router struct {
 	ruleSetMap              map[string]adapter.RuleSet
 	defaultTransport        dns.Transport
 	transports              []dns.Transport
+	needECSUpdate           bool
+	ECSHandler              ecs.ECSHandler
+	clientSubnetMask        int
 	transportMap            map[string]dns.Transport
 	transportDomainStrategy map[dns.Transport]dns.DomainStrategy
 	dnsReverseMapping       *DNSReverseMapping
@@ -226,6 +230,11 @@ func NewRouter(ctx context.Context, logFactory log.Factory, options option.Route
 				clientSubnet = netip.Prefix(common.PtrValueOrDefault(server.ClientSubnet))
 			} else if dnsOptions.ClientSubnet != nil {
 				clientSubnet = netip.Prefix(common.PtrValueOrDefault(dnsOptions.ClientSubnet))
+				if clientSubnet.Addr().IsUnspecified() {
+					router.needECSUpdate = true
+					router.clientSubnetMask = clientSubnet.Bits()
+					clientSubnet = netip.Prefix{}
+				}
 			}
 			if serverProtocol == "" {
 				serverProtocol = "transport"
@@ -289,6 +298,12 @@ func NewRouter(ctx context.Context, logFactory log.Factory, options option.Route
 	if _, isFakeIP := defaultTransport.(adapter.FakeIPTransport); isFakeIP {
 		return nil, E.New("default DNS server cannot be fakeip")
 	}
+
+	if router.needECSUpdate {
+		router.ECSHandler = ecs.ECSHandler{}
+		router.network.InterfaceMonitor().RegisterCallback(router.ECSUpdate)
+	}
+
 	router.defaultTransport = defaultTransport
 	router.transports = transports
 	router.transportMap = transportMap

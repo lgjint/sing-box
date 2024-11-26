@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
+	"github.com/sagernet/sing-box/common/ecs"
 	C "github.com/sagernet/sing-box/constant"
 	R "github.com/sagernet/sing-box/route/rule"
-	"github.com/sagernet/sing-dns"
-	"github.com/sagernet/sing-tun"
+	dns "github.com/sagernet/sing-dns"
+	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/cache"
+	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	M "github.com/sagernet/sing/common/metadata"
@@ -39,12 +41,23 @@ func (m *DNSReverseMapping) Query(address netip.Addr) (string, bool) {
 	return domain, loaded
 }
 
+func (r *Router) ECSUpdate(defaultInterface *control.Interface, flags int) {
+	publicIpAddr, same := r.ECSHandler.UpdatePublicIpAddr()
+	if publicIpAddr.IsValid() && !same {
+		r.logger.Info("updated client subnet ip, ", publicIpAddr.String())
+		r.ClearDNSCache()
+	}
+}
+
 func (r *Router) matchDNS(ctx context.Context, allowFakeIP bool, ruleIndex int, isAddressQuery bool) (dns.Transport, dns.QueryOptions, adapter.DNSRule, int) {
 	metadata := adapter.ContextFrom(ctx)
 	if metadata == nil {
 		panic("no context")
 	}
 	var options dns.QueryOptions
+	if r.needECSUpdate {
+		options.ClientSubnet = r.ECSHandler.GetPublicIpPrefix(r.clientSubnetMask)
+	}
 	if ruleIndex < len(r.dnsRules) {
 		dnsRules := r.dnsRules
 		if ruleIndex != -1 {
@@ -83,7 +96,15 @@ func (r *Router) matchDNS(ctx context.Context, allowFakeIP bool, ruleIndex int, 
 					if action.RewriteTTL != nil {
 						options.RewriteTTL = action.RewriteTTL
 					}
-					if action.ClientSubnet.IsValid() {
+					if action.ClientSubnet.Addr().IsUnspecified() {
+						if !r.needECSUpdate {
+							r.ECSHandler = ecs.ECSHandler{}
+							r.network.InterfaceMonitor().RegisterCallback(r.ECSUpdate)
+						} else {
+							r.ECSHandler.UpdatePublicIpAddr()
+						}
+						options.ClientSubnet = netip.PrefixFrom(getPublicIpAddr(), action.ClientSubnet.Bits())
+					} else if action.ClientSubnet.IsValid() {
 						options.ClientSubnet = action.ClientSubnet
 					}
 					if domainStrategy, dsLoaded := r.transportDomainStrategy[transport]; dsLoaded {
@@ -100,7 +121,15 @@ func (r *Router) matchDNS(ctx context.Context, allowFakeIP bool, ruleIndex int, 
 					if action.RewriteTTL != nil {
 						options.RewriteTTL = action.RewriteTTL
 					}
-					if action.ClientSubnet.IsValid() {
+					if action.ClientSubnet.Addr().IsUnspecified() {
+						if !r.needECSUpdate {
+							r.ECSHandler = ecs.ECSHandler{}
+							r.network.InterfaceMonitor().RegisterCallback(r.ECSUpdate)
+						} else {
+							r.ECSHandler.UpdatePublicIpAddr()
+						}
+						options.ClientSubnet = netip.PrefixFrom(getPublicIpAddr(), action.ClientSubnet.Bits())
+					} else if action.ClientSubnet.IsValid() {
 						options.ClientSubnet = action.ClientSubnet
 					}
 					r.logger.DebugContext(ctx, "match[", displayRuleIndex, "] => ", currentRule.Action())

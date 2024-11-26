@@ -10,7 +10,7 @@ icon: material/new-box
 {
   "action": "route",  // 默认
   "server": "",
-  
+
   // 兼容性
   "disable_cache": false,
   "rewrite_ttl": 0,
@@ -39,6 +39,8 @@ icon: material/new-box
 默认情况下，将带有指定 IP 前缀的 `edns0-subnet` OPT 附加记录附加到每个查询。
 
 如果值是 IP 地址而不是前缀，则会自动附加 `/32` 或 `/128`。
+
+如果IP 地址是`127.0.0.1` 或 `::1`，则会自动附加公网IP。
 
 将覆盖 `dns.client_subnet` 与 `servers.[].client_subnet`。
 

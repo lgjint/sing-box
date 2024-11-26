@@ -38,6 +38,8 @@ Append a `edns0-subnet` OPT extra record with the specified IP prefix to every q
 
 If value is an IP address instead of prefix, `/32` or `/128` will be appended automatically.
 
+If the IP address is `0.0.0.0` or `::1`, public ip wiil be be appended automatically.
+
 Will overrides `dns.client_subnet` and `servers.[].client_subnet`.
 
 ### route-options

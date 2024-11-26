@@ -84,6 +84,8 @@ LRU 缓存容量。
 
 如果值是 IP 地址而不是前缀，则会自动附加 `/32` 或 `/128`。
 
+如果IP 地址是`127.0.0.1` 或 `::1`，则会自动附加公网IP。
+
 可以被 `servers.[].client_subnet` 或 `rules.[].client_subnet` 覆盖。
 
 #### fakeip
